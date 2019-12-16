@@ -15,13 +15,12 @@ class GetReportTable:
         self.data = self.data.loc[dateMask,
                                   ['StopCode', 'DateRec', 'GroupCode',
                                    'MachCode']]
-        print("period setting is passed")
+        print("period setting is has been passed")
 
     def run(self):
         """ main procces """
         self.makeGroup(step=1)
-        self.data['status'] = self.data['StopCode'].apply(
-            lambda x: True if x == 0 else False)
+        self.data['status'] = self.data['StopCode'].apply(lambda x: x == 0)
         print("applying run status code(1,0) is has been passed")
         self.data['duration'] = self.data.apply(self.estimateDuration, axis=1)
         print("esttimating per status duration is has been passed")
@@ -42,7 +41,7 @@ class GetReportTable:
             if(nextItem['GroupCode'] == gr and nextItem['MachCode'] == mch):
                 return nextItem['DateRec']-dt
             else:
-              return None
+                return None
         else:
             return None
 
@@ -54,7 +53,8 @@ class GetReportTable:
             self.data = self.data.reset_index()
             print("making groups step = 1 is has been passed")
         elif step == 2:
-            self.data = self.data.groupby(['GroupCode', 'MachCode', 'status']).agg({'duration':'sum'})
+            self.data = self.data.groupby(
+                ['GroupCode', 'MachCode', 'status']).agg({'duration': 'sum'})
             print("making groups step = 2 is has been passed")
 
     def exportTo_csv(self, name='output'):
@@ -63,10 +63,10 @@ class GetReportTable:
         print("exporting\n filename: {} is has been passed".format(filename))
 
 
-fileName="1312.csv"
-start='2019-12-13 08:00:00.000'
-end='2019-12-14 20:00:00.000'
+fileName = "1312.csv"
+start = '2019-12-13 08:00:00.000'
+end = '2019-12-14 20:00:00.000'
 
-makeReport=GetReportTable(fileName)
+makeReport = GetReportTable(fileName)
 makeReport.setPeriod(start, end)
 makeReport.run()
