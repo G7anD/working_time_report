@@ -19,20 +19,48 @@ export default class App extends React.Component {
     this.end = new Date();
     this.start = new Date(this.end);
     this.start.setDate(this.start.getDate() - 1);
-    this.state = {
-      end: this.end.getFullYear() + "-" + (this.end.getMonth() + 1) + "-" + this.end.getDate(),
-      start: this.start.getFullYear() + "-" + (this.start.getMonth() + 1) + "-" + this.start.getDate()
-    }
+    this.loadData = this.loadData.bind(this);
+    this.handleChange = this.handleChange.bind(this);
+  }
+  componentDidMount() {
 
+    this.loadData();
+  }
+  formatDate(date) {
+    if (!date)
+        return null;
+    var d = new Date(date),
+        month = '' + (d.getMonth() + 1),
+        day = '' + d.getDate(),
+        year = d.getFullYear();
+
+    if (month.length < 2)
+        month = '0' + month;
+    if (day.length < 2)
+        day = '0' + day;
+
+    return [year, month, day].join('-');
+}
+  loadData() {
+    let url = 'http://web.uztex.uz:8000/api/v1/working-time/';
+    if (this.dt_period.startDate && this.dt_period.endDate) {
+        let start = this.formatDate(this.dt_period.startDate);
+        let end_date = new Date(this.dt_period.endDate);
+        end_date.setDate(end_date.getDate());
+        let end = this.formatDate(end_date);
+        url += `?start_time=${start} 23:00:00&end_time=${end} 01:00:00`;
+    } 
     axios
-      .get(
-        "http://web.uztex.uz:8000/api/v1/working-time/?start_time=" + this.state.start + " 23:00:00&end_time=" + this.state.end + " 01:00:00"
-      )
+      .get(url)
       .then(res => {
         this.grid.dataSource = res.data;
-        console.log(this.state.end, this.state.start);
       });
   }
+  handleChange() {
+    this.grid.dataSource =  null;
+    this.loadData();
+  }
+
   render() {
     return (
       <div className='control-pane'>
@@ -40,12 +68,14 @@ export default class App extends React.Component {
           <DateRangePickerComponent
             id="daterangepicker"
             placeholder="Select a range"
+            ref={dt => this.dt_period = dt}
             startDate={this.start}
             endDate={this.end}
-            onChange={this.handleChange}
+            change={this.handleChange}
           />
           <GridComponent
-            allowPaging={true} ref={g => {
+            allowPaging={true}
+            ref={g => {
               this.grid = g
             }}>
             <ColumnsDirective>
